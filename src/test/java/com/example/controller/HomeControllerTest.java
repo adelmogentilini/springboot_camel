@@ -1,32 +1,19 @@
 package com.example.controller;
 
-import org.apache.camel.*;
-import org.apache.camel.clock.EventClock;
-import org.apache.camel.spi.*;
-import org.apache.camel.support.jsse.SSLContextParameters;
-import org.apache.camel.vault.VaultConfiguration;
-import org.junit.Before;
+import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
+import org.apache.camel.FluentProducerTemplate;
+import org.apache.camel.Message;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.time.Duration;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Predicate;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -34,9 +21,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = HomeController.class)
 public class HomeControllerTest {
+
+    public HomeControllerTest() {
+        LOG.info("**************** \t sto costruendo classe di test \t *****************");
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(HomeControllerTest.class);
     private MockMvc mockMvc;
 
@@ -47,7 +38,8 @@ public class HomeControllerTest {
     private CamelContext camelContext;
 
     @MockBean
-    private FluentProducerTemplate producer;
+    FluentProducerTemplate producer;
+
     @MockBean
     Exchange exchange;
     @MockBean
@@ -55,20 +47,19 @@ public class HomeControllerTest {
 
     @BeforeEach
     public void setUp() {
-        LOG.info("**************************************************  SETUP **************************************************  ");
+        LOG.info("\tSETUP "+this.toString());
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
         // Manually create and inject the mock
-        this.producer = Mockito.mock(FluentProducerTemplate.class);
-        this.camelContext = Mockito.mock(CamelContext.class);
-        this.exchange = Mockito.mock(Exchange.class);
         HomeController homeController = webApplicationContext.getBean(HomeController.class);
-        homeController.producer = this.producer;
-        when( homeController.producer.getCamelContext()).thenReturn(this.camelContext);
-        when(homeController.producer.withExchange((Exchange)any())).thenReturn(homeController.producer);
+        homeController.producer = producer; // Iniettato con EndpointInject quindi se non lo inietto nel setup non funziona
+
+        // Definisco il comportamento delle chiamate che uso per invocare le rotte
+        when(homeController.producer.getCamelContext()).thenReturn(camelContext);
+        when(homeController.producer.withExchange((Exchange) any())).thenReturn(producer);
         when(homeController.producer.send()).thenReturn(exchange);
-        LOG.info(producer.toString());
-        LOG.info("**************************************************   SETUP DONE **************************************************  ");
+        when(exchange.getIn()).thenReturn(message);
+        LOG.info("\tSETUP DONE ");
     }
 
     @Test
@@ -84,7 +75,7 @@ public class HomeControllerTest {
 
     @Test
     public void testAltraRoute() throws Exception {
-        when(this.exchange.getIn()).thenReturn(message);
+
         when(message.getBody()).thenReturn("CIAO");
         // Perform the test
         mockMvc.perform(get("/hello/testName"))

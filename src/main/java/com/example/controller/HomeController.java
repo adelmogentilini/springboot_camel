@@ -23,7 +23,7 @@ public class HomeController {
     CamelContext camelContext;
 
     @EndpointInject("direct:hello")
-    private FluentProducerTemplate producer;
+     FluentProducerTemplate producer;
 
     @GetMapping("/")
     public String index() {

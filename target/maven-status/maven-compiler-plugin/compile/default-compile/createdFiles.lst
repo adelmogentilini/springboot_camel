@@ -1,0 +1,7 @@
+com\example\dto\NumberDTO.class
+com\example\controller\MyRestController.class
+com\example\application\SpringBootDemoApplication.class
+com\example\processor\HelloProcessor.class
+com\example\processor\CalcoloProcessor.class
+com\example\controller\HomeController.class
+com\example\entity\NumberEntity.class

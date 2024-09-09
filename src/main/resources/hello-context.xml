@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <bean id="helloProcessor" class="com.example.processor.HelloProcessor">
+        <constructor-arg>
+            <set>
+                <value>helloRoute</value>
+            </set>
+        </constructor-arg>
+    </bean>
+
+    <!--bean sum-->
+    <bean id="calcoloProcessor" class="com.example.processor.CalcoloProcessor">
+        <constructor-arg>
+            <set>
+                <value>calcoloRoute</value>
+            </set>
+        </constructor-arg>
+    </bean>
+
+    <camelContext id="camelContext" xmlns="http://camel.apache.org/schema/spring">
+        <route id="helloRoute">
+            <from uri="direct:hello"/>
+            <process ref="helloProcessor"/>
+            <choice>
+                <when>
+                    <simple>${exchangeProperty.SUMRESULTInput} != 'errore'</simple>
+                    <to uri="direct:calcolo"/>
+                </when>
+
+            </choice>
+
+        </route>
+
+        <route id="calcoloRoute"><!--chiamata rest-->
+            <from uri="direct:calcolo"/><!--da dove sono a dove vado-->
+            <process ref="calcoloProcessor"/><!--creato in UserApiImp-->
+        </route>
+
+    </camelContext>
+
+</beans>
